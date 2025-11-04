@@ -1,4 +1,45 @@
-# annotation
+# Book Annotation
+
+## Installation
+
+#### Install Lean
+
+You can install Lean with brew if on MacOs.
+
+```sh
+brew install elan-init
+elan default stable
+```
+
+You may equally use curl.
+
+```sh
+curl https://raw.githubusercontent.com/leanprover/elan/master/elan-init.sh -sSf | sh
+```
+
+Check your installation.
+
+```sh
+lean --version
+```
+
+#### Set up a Lean project
+
+Clone the repository and download Lean dependencies.
+
+```sh
+git clone git@github.com:VivienCabannes/book-annotation.git
+cd book-annotation
+lake exe cache get
+```
+
+Alternatively you can create a new project dependent on Mathlib, and download the required libraries.
+
+```sh
+lake new book-annotation math
+cd book-annotation
+lake exe cache get
+```
 
 ## GitHub configuration
 
