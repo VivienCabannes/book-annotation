@@ -1,0 +1,80 @@
+You have to help me formalize some passage of a mathematical text in Lean. Some earlier passages in that text might have already been formalized.
+I am going to give you the entire mathematical text, some Lean code that contains the formal versions of the parts that have already been formalized, and the passage in the text that must be formalized.
+This passage is going to be either a definition or a mathematical statement (e.g. a theorem).
+Then:
+- You must write a Lean script that contains the already formalized content, followed by a formal version of the passage to be formalized.
+- This Lean code must compile.
+- If the passage to be formalized is a statement, do not write a proof for it; instead, use the "sorry" keyword.
+- As much as possible, try to reuse the definitions and statements that are already formalized.
+- If some formal definitions are missing to easily state the passage to be formalized, you can add them to the file before the formal version of the passage.
+- Feel free to look online for existing resources.
+- If some definitions or statements are already in Mathlib, you are free to use them; you do not need to come up with equivalent code.
+
+
+Here is the informal mathematical text, in tex:
+The central objects of our study are convex functions and convex sets in $\R^n$.
+
+The central objects of our study are convex functions and convex sets in $\R^n$.
+
+\begin{definition}[Convex sets and convex functions]
+A set $\cX \subset \R^n$ is said to be convex if it contains all of its segments, that is
+$$\forall (x,y,\gamma) \in \cX \times \cX \times [0,1], \; (1-\gamma) x + \gamma y \in \mathcal{X}.$$
+A function $f : \mathcal{X} \rightarrow \R$ is said to be convex if it always lies below its chords, that is
+$$ \forall (x,y,\gamma) \in \cX \times \cX \times [0,1], \; f((1-\gamma) x + \gamma y) \leq (1-\gamma)f(x) + \gamma f(y) .$$
+\end{definition}
+We are interested in algorithms that take as input a convex set $\cX$ and a convex function $f$ and output an approximate minimum of $f$ over $\cX$. We write compactly the problem of finding the minimum of $f$ over $\cX$ as
+\begin{align*}
+& \mathrm{min.} \; f(x) \\
+& \text{s.t.} \; x \in \cX .
+\end{align*}
+In the following we will make more precise how the set of constraints $\cX$ and the objective function $f$ are specified to the algorithm. Before that we proceed to give a few important examples of convex optimization problems in machine learning.
+
+\section{Some convex optimization problems in machine learning} \label{sec:mlapps}
+Many fundamental convex optimization problems in machine learning take the following form:
+\begin{equation} \label{eq:veryfirst}
+\underset{x \in \R^n}{\mathrm{min.}} \; \sum_{i=1}^m f_i(x) + \lambda \cR(x) ,
+\end{equation}
+where the functions $f_1, \hdots, f_m, \cR$ are convex and $\lambda \geq 0$ is a fixed parameter. The interpretation is that $f_i(x)$ represents the cost of using $x$ on the $i^{th}$ element of some data set, and $\cR(x)$ is a regularization term which enforces some ``simplicity'' in $x$. We discuss now major instances of \eqref{eq:veryfirst}. In all cases one has a data set of the form $(w_i, y_i) \in \R^n \times \cY, i=1, \hdots, m$ and the cost function $f_i$ depends only on the pair $(w_i, y_i)$. We refer to \cite{HTF01, SS02, SSS14} for more details on the origin of these important problems. The mere objective of this section is to expose the reader to a few concrete convex optimization problems which are routinely solved.
+
+In classification one has $\cY = \{-1,1\}$. Taking $f_i(x) = \max(0, 1- y_i x^{\top} w_i)$ (the so-called hinge loss) and $\cR(x) = \|x\|_2^2$ one obtains the SVM problem. On the other hand taking $f_i(x) = \log(1 + \exp(-y_i x^{\top} w_i) )$ (the logistic loss) and again $\cR(x) = \|x\|_2^2$ one obtains the (regularized) logistic regression problem.
+
+In regression one has $\cY = \R$. Taking $f_i(x) = (x^{\top} w_i - y_i)^2$ and $\cR(x) = 0$ one obtains the vanilla least-squares problem which can be rewritten in vector notation as
+$$\underset{x \in \R^n}{\mathrm{min.}} \; \|W x - Y\|_2^2 ,$$
+where $W \in \R^{m \times n}$ is the matrix with $w_i^{\top}$ on the $i^{th}$ row and $Y =(y_1, \hdots, y_n)^{\top}$.
+With $\cR(x) = \|x\|_2^2$ one obtains the ridge regression problem, while with $\cR(x) = \|x\|_1$ this is the LASSO problem \cite{Tib96}.
+
+Our last two examples are of a slightly different flavor. In particular the design variable $x$ is now best viewed as a matrix, and thus we denote it by a capital letter $X$. The sparse inverse covariance estimation problem can be written as follows, given some empirical covariance matrix $Y$,
+\begin{align*}
+& \mathrm{min.} \; \mathrm{Tr}(X Y) - \mathrm{logdet}(X) + \lambda \|X\|_1 \\
+& \text{s.t.} \; X \in \R^{n \times n}, X^{\top} = X, X \succeq 0 .
+\end{align*}
+Intuitively the above problem is simply a regularized maximum likelihood estimator (under a Gaussian assumption).
+
+Finally we introduce the convex version of the matrix completion problem. Here our data set consists of observations of some of the entries of an unknown matrix $Y$, and we want to ``complete" the unobserved entries of $Y$ in such a way that the resulting matrix is ``simple" (in the sense that it has low rank). After some massaging (see \cite{CR09}) the (convex) matrix completion problem can be formulated as follows:
+\begin{align*}
+& \mathrm{min.} \; \mathrm{Tr}(X) \\
+& \text{s.t.} \; X \in \R^{n \times n}, X^{\top} = X, X \succeq 0, X_{i,j} = Y_{i,j} \; \text{for} \; (i,j) \in \Omega ,
+\end{align*}
+where $\Omega \subset [n]^2$ and $(Y_{i,j})_{(i,j) \in \Omega}$ are given.
+
+\section{Basic properties of convexity}
+A basic result about convex sets that we shall use extensively is the Separation Theorem.
+
+\begin{theorem}[Separation Theorem]
+Let $\mathcal{X} \subset \R^n$ be a closed convex set, and $x_0 \in \R^n \setminus \mathcal{X}$. Then, there exists $w \in \R^n$ and $t \in \R$ such that
+$$w^{\top} x_0 < t, \; \text{and} \; \forall x \in \mathcal{X}, w^{\top} x \geq t.$$
+\end{theorem}
+
+
+Here are the already formalized definitions and statements:
+
+import Mathlib.Analysis.Convex.Basic
+import Mathlib.Analysis.Convex.Function
+
+Here is the passage to be formalized:
+
+
+\begin{theorem}[Separation Theorem]
+Let $\mathcal{X} \subset \R^n$ be a closed convex set, and $x_0 \in \R^n \setminus \mathcal{X}$. Then, there exists $w \in \R^n$ and $t \in \R$ such that
+$$w^{\top} x_0 < t, \; \text{and} \; \forall x \in \mathcal{X}, w^{\top} x \geq t.$$
+\end{theorem}

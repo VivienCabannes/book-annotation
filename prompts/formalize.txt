@@ -1,0 +1,7 @@
+I am formalizing the following textbook file in Lean:
+```latex
+<latex source>
+```
+
+I only want to formalize the theorems, as well as the definitions needed to state them.
+Can you do it for me? I have started to do it in the `<filename>` file.

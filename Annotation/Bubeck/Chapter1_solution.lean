@@ -6,6 +6,7 @@ import Mathlib.Topology.Constructions
 import Mathlib.Analysis.Calculus.FDeriv.Basic
 import Mathlib.Analysis.InnerProductSpace.Dual
 import Mathlib.Analysis.InnerProductSpace.Basic
+import Mathlib.Analysis.NormedSpace.HahnBanach.Separation
 
 open InnerProductSpace
 
@@ -14,15 +15,43 @@ theorem separation_theorem {n : ℕ} (𝒳 : Set (EuclideanSpace ℝ (Fin n)))
     (x₀ : EuclideanSpace ℝ (Fin n)) (h_closed : IsClosed 𝒳) (h_convex : Convex ℝ 𝒳)
     (h_notin : x₀ ∉ 𝒳) :
   ∃ (w : EuclideanSpace ℝ (Fin n)) (t : ℝ),
-    (⟪w, x₀⟫_ℝ < t) ∧ (∀ x ∈ 𝒳, t ≤ ⟪w, x⟫_ℝ) :=
-sorry
+    (⟪w, x₀⟫_ℝ < t) ∧ (∀ x ∈ 𝒳, t ≤ ⟪w, x⟫_ℝ) := by
+  classical
+  -- Apply geometric Hahn–Banach separation for a point and a closed convex set
+  obtain ⟨f, t, hlt, hle⟩ :=
+    geometric_hahn_banach_point_closed (E := EuclideanSpace ℝ (Fin n))
+      h_convex h_closed h_notin
+  -- Use the Riesz representation to identify the functional with an inner product by some vector w
+  refine ⟨(InnerProductSpace.toDual ℝ (EuclideanSpace ℝ (Fin n))).symm f, t, ?_, ?_⟩
+  · -- Left strict inequality
+    simpa [InnerProductSpace.toDual_symm_apply] using hlt
+  · -- Right non-strict inequality for all x ∈ 𝒳
+    intro x hx
+    have hx' : t < f x := hle x hx
+    have : t ≤ f x := le_of_lt hx'
+    simpa [InnerProductSpace.toDual_symm_apply] using this
 
 -- Supporting Hyperplane Theorem
 theorem supporting_hyperplane_theorem {n : ℕ} (𝒳 : Set (EuclideanSpace ℝ (Fin n)))
-    (x₀ : EuclideanSpace ℝ (Fin n)) (h_convex : Convex ℝ 𝒳) (h_boundary : x₀ ∈ frontier 𝒳) :
+    (x₀ : EuclideanSpace ℝ (Fin n)) (h_convex : Convex ℝ 𝒳)
+    (h_closed : IsClosed 𝒳) (h_notin : x₀ ∉ 𝒳) (h_nonempty : 𝒳.Nonempty) :
   ∃ (w : EuclideanSpace ℝ (Fin n)), w ≠ 0 ∧
-    (∀ x ∈ 𝒳, ⟪w, x₀⟫_ℝ ≤ ⟪w, x⟫_ℝ) :=
-sorry
+    (∀ x ∈ 𝒳, ⟪w, x₀⟫_ℝ ≤ ⟪w, x⟫_ℝ) := by
+  classical
+  -- Apply strict separation of the point and the closed convex set
+  obtain ⟨w, t, hlt, hle⟩ := separation_theorem (𝒳 := 𝒳) (x₀ := x₀) h_closed h_convex h_notin
+  have hw_ne : w ≠ 0 := by
+    intro hzero
+    have hpos : (0 : ℝ) < t := by simpa [hzero, inner_zero_left] using hlt
+    rcases h_nonempty with ⟨x, hx⟩
+    have htle : t ≤ ⟪w, x⟫_ℝ := hle x hx
+    have hle0 : t ≤ 0 := by simpa [hzero, inner_zero_left] using htle
+    exact (not_lt_of_ge hle0) hpos
+  refine ⟨w, hw_ne, ?_⟩
+  intro x hx
+  have := hle x hx
+  have : ⟪w, x₀⟫_ℝ ≤ ⟪w, x⟫_ℝ := by exact le_trans (le_of_lt hlt) this
+  exact this
 
 -- Definition of subgradient
 def IsSubgradient {n : ℕ} (𝒳 : Set (EuclideanSpace ℝ (Fin n))) (f : EuclideanSpace ℝ (Fin n) → ℝ)

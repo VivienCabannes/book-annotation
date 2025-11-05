@@ -1,0 +1,34 @@
+### Goal
+
+I am trying to prove the statement in this file by replacing all occurrences of `sorry` with complete proofs.
+A proof will be considered correct if running
+
+```bash
+lake build
+```
+
+completes without any errors or warnings.
+
+### Dependencies
+
+These proofs can be built using **mathlib**, available in `.lake/packages/mathlib`.
+You may also use any other packages found in `.lake/package`.
+
+You are free to use additional resources from the internet.
+If you do so, make sure to add the corresponding dependencies to `lake-manifest.json`, and then run:
+
+```bash
+lake exe cache get
+```
+
+to update the dependencies.
+
+### Informal Proofs
+
+The theorems to be proven correspond to the formal statements from the book *Convex Optimization: Algorithms and Complexity*.
+The LaTeX source files for the book are located in `books/bubeck_convex_optimization`.
+You can browse these files to find the informal proofs, which should guide your formalizations.
+
+Use the format theorem, sorry, proposition, sorry.
+
+Add a comment with the number of the theorems
